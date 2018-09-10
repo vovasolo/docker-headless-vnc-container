@@ -1,6 +1,6 @@
-# This Dockerfile is used to build an headles vnc image based on Ubuntu
+# This Dockerfile is used to build an headless vnc image based on Ubuntu
 
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER Tobias Schneck "tobias.schneck@consol.de"
 ENV REFRESHED_AT 2018-03-27
@@ -46,8 +46,8 @@ RUN $INST_SCRIPTS/tigervnc.sh
 RUN $INST_SCRIPTS/no_vnc.sh
 
 ### Install firefox and chrome browser
-RUN $INST_SCRIPTS/firefox.sh
-RUN $INST_SCRIPTS/chrome.sh
+# RUN $INST_SCRIPTS/firefox.sh
+# RUN $INST_SCRIPTS/chrome.sh
 
 ### Install xfce UI
 RUN $INST_SCRIPTS/xfce_ui.sh
@@ -58,7 +58,44 @@ RUN $INST_SCRIPTS/libnss_wrapper.sh
 ADD ./src/common/scripts $STARTUPDIR
 RUN $INST_SCRIPTS/set_user_permission.sh $STARTUPDIR $HOME
 
-USER 1000
+# ANTS stuff
+
+ARG ROOTTGZ=root_v6.14.04.Linux-ubuntu18-x86_64-gcc7.3.tar.gz
+# Update all packages
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
+# Install packages
+# Essential utilities
+RUN apt-get -y install git nano wget
+# Development environment (gcc, make, etc.)
+RUN apt-get -y install build-essential
+# Qt5 base system + modules required by ANTS
+RUN apt-get -y install qt5-default libqt5websockets5-dev qtscript5-dev
+# additional libs needed by ROOT
+RUN apt-get -y install libtbb-dev
+# additional libs needed by ANTS
+RUN apt-get -y install libeigen3-dev
+# xeyes to test X11 forwarding + some X11 packaged needed by ROOT pulled as dependencies
+RUN apt-get -y install x11-apps
+
+# ROOT Installation
+RUN wget https://root.cern.ch/download/$ROOTTGZ
+RUN tar -xzf $ROOTTGZ -C /opt
+RUN rm $ROOTTGZ
+RUN echo ". /opt/root/bin/thisroot.sh" >> ~/.bashrc
+
+# ANTS installation
+RUN mkdir /ants2 && cd /ants2 && git clone -b Dev https://github.com/andrmor/ANTS2.git # refresh+1!
+RUN cd /ants2/ANTS2 && mkdir build
+### the effect of sourcing a script lasts only inside one RUN command
+### so we need to pack it together with compilation as a one-liner
+RUN /bin/bash -c "source /opt/root/bin/thisroot.sh \
+    && cd /ants2/ANTS2/build && qmake ../src/ants2.pro && make -j3"
+RUN mkdir /root/.config && mkdir /root/.config/ants2 && mkdir /root/.config/ants2/Config
+RUN touch /root/.config/ants2/Config/config.ini
+
+# End of ANTS stuff
+
+#USER 1000
 
 ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
 CMD ["--wait"]
