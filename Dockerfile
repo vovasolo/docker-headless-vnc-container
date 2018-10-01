@@ -1,15 +1,8 @@
-# This Dockerfile is used to build an headless vnc image based on Ubuntu
+# This Dockerfile creates standalone ANTS2 installation accessible through
+# an HTML5 browser or a vnc viewer 
+# Based on headless vnc/novnc container by Tobias Schneck "tobias.schneck@consol.de"
 
 FROM ubuntu:18.04
-
-MAINTAINER Tobias Schneck "tobias.schneck@consol.de"
-ENV REFRESHED_AT 2018-03-27
-
-LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firefox and chromium" \
-      io.k8s.display-name="Headless VNC Container based on Ubuntu" \
-      io.openshift.expose-services="6901:http,5901:xvnc" \
-      io.openshift.tags="vnc, ubuntu, xfce" \
-      io.openshift.non-scalable=true
 
 ## Connection ports for controlling the UI:
 # VNC port:5901
