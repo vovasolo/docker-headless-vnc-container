@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ANTS2
+Comment=Detector simulation and event reconstruction suite
+Exec=/headless/start_ants.sh
+Icon=/headless/.config/ant-icon.png
+Path=
+Terminal=true
+StartupNotify=false

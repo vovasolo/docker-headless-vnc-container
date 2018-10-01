@@ -76,6 +76,10 @@ RUN apt-get -y install libtbb-dev
 RUN apt-get -y install libeigen3-dev
 # xeyes to test X11 forwarding + some X11 packaged needed by ROOT pulled as dependencies
 RUN apt-get -y install x11-apps
+# OpenGL, FLANN and FANN
+RUN apt-get -y install libgl2ps-dev libflann-dev libfann-dev liblz4-dev
+# Python scripting
+RUN apt-get -y install python3-dev libpythonqt-qt5-python3-dev
 
 # ROOT Installation
 RUN wget https://root.cern.ch/download/$ROOTTGZ
@@ -86,16 +90,17 @@ RUN echo ". /opt/root/bin/thisroot.sh" >> ~/.bashrc
 # ANTS installation
 RUN mkdir /ants2 && cd /ants2 && git clone -b Dev https://github.com/andrmor/ANTS2.git # refresh+1!
 RUN cd /ants2/ANTS2 && mkdir build
+
 ### the effect of sourcing a script lasts only inside one RUN command
 ### so we need to pack it together with compilation as a one-liner
 RUN /bin/bash -c "source /opt/root/bin/thisroot.sh \
-    && cd /ants2/ANTS2/build && qmake ../src/ants2.pro && make -j3"
+    && cd /ants2/ANTS2/build && qmake \"CONFIG += ants2_docker\" ../src/ants2.pro && make -j3"
 RUN mkdir /root/.config && mkdir /root/.config/ants2 && mkdir /root/.config/ants2/Config
 RUN touch /root/.config/ants2/Config/config.ini
 
 # End of ANTS stuff
 
-#USER 1000
+USER 1000
 
 ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
 CMD ["--wait"]
