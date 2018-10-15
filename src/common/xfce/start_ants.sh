@@ -1,3 +1,4 @@
 #!/bin/bash
+# ANTS2 startup script
 cd /ants2/ANTS2/build
-LD_LIBRARY_PATH="/opt/root/lib" ./ants2
+./ants2

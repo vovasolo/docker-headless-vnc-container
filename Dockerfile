@@ -59,8 +59,8 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade
 # Install packages
 # Essential utilities
 RUN apt-get -y install git nano wget
-# Development environment (gcc, make, etc.)
-RUN apt-get -y install build-essential
+# Development environment (gcc, make, etc. + cmake)
+RUN apt-get -y install build-essential cmake
 # Qt5 base system + modules required by ANTS
 RUN apt-get -y install qt5-default libqt5websockets5-dev qtscript5-dev
 # additional libs needed by ROOT
@@ -80,6 +80,13 @@ RUN tar -xzf $ROOTTGZ -C /opt
 RUN rm $ROOTTGZ
 RUN echo ". /opt/root/bin/thisroot.sh" >> ~/.bashrc
 
+# Ncrystal
+RUN cd / && git clone https://github.com/mctools/ncrystal.git # refresh+1!
+RUN cd /ncrystal && cmake . && make -j3 && make install
+RUN echo "export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/lib" >> ~/.bashrc
+#ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+
+
 # ANTS installation
 RUN mkdir /ants2 && cd /ants2 && git clone -b Dev https://github.com/andrmor/ANTS2.git # refresh+1!
 RUN cd /ants2/ANTS2 && mkdir build
@@ -92,6 +99,8 @@ RUN mkdir /root/.config && mkdir /root/.config/ants2 && mkdir /root/.config/ants
 RUN touch /root/.config/ants2/Config/config.ini
 
 # End of ANTS stuff
+
+RUN useradd -ms /bin/bash formiga
 
 USER 1000
 
